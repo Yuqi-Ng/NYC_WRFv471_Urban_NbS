@@ -796,39 +796,48 @@ use module_model_constants, only :  piconst
   SW=STREET_WIDTH(1)
  end if
  
- !Assign NUDAPT Parameters
-   ZR = mh_urb
-    R = lp_urb
-    RW = 1.0-R
-   HGT = mh_urb/(BW+SW)
-   SIGMA_ZED = stdh_urb
 
- !Calculate Wind Direction and Assign Appropriae lf_urb
-   WDR = (180.0/PI)*ATAN2(U10,V10)
-   
-   IF(WDR.ge.0.0.and.WDR.lt.22.5)THEN
-     lambda_f = lf_urb(1)
-   ELSEIF(WDR.ge.-22.5.and.WDR.lt.0.0)THEN
-     lambda_f = lf_urb(1)
-   ELSEIF(WDR.gt.157.5.and.WDR.le.180.0)THEN
-     lambda_f = lf_urb(1)
-   ELSEIF(WDR.lt.-157.5)THEN
-     lambda_f = lf_urb(1)
-   ELSEIF(WDR.gt.22.5.and.WDR.le.67.5)THEN
-     lambda_f = lf_urb(2)
-   ELSEIF(WDR.ge.-157.5.and.WDR.lt.-112.5)THEN
-     lambda_f = lf_urb(2)
-   ELSEIF(WDR.gt.67.5.and.WDR.le.112.5)THEN
-     lambda_f = lf_urb(3)
-   ELSEIF(WDR.ge.-112.5.and.WDR.lt.-67.5)THEN
-     lambda_f = lf_urb(3)
-   ELSEIF(WDR.gt.112.5.and.WDR.le.157.5)THEN
-     lambda_f = lf_urb(4)
-   ELSEIF(WDR.ge.-67.5.and.WDR.lt.-22.5)THEN
-     lambda_f = lf_urb(4)
-   ELSE
-     lambda_f = lf_urb(1)
-   ENDIF
+ !!Assign NUDAPT Parameters
+   !ZR = mh_urb
+    !R = lp_urb
+    !RW = 1.0-R
+   !HGT = mh_urb/(BW+SW)
+   !SIGMA_ZED = stdh_urb
+
+
+ ! overwrite NUDAPT (yuqi)
+   BW = R
+   SW = RW
+   HGT = ZR/(BW+SW)
+   lambda_f = ZR/(BW+SW)
+
+ !!Calculate Wind Direction and Assign Appropriae lf_urb
+   !WDR = (180.0/PI)*ATAN2(U10,V10)
+   !IF(WDR.ge.0.0.and.WDR.lt.22.5)THEN
+     !lambda_f = lf_urb(1)
+   !ELSEIF(WDR.ge.-22.5.and.WDR.lt.0.0)THEN
+     !lambda_f = lf_urb(1)
+   !ELSEIF(WDR.gt.157.5.and.WDR.le.180.0)THEN
+     !lambda_f = lf_urb(1)
+   !ELSEIF(WDR.lt.-157.5)THEN
+     !lambda_f = lf_urb(1)
+   !ELSEIF(WDR.gt.22.5.and.WDR.le.67.5)THEN
+     !lambda_f = lf_urb(2)
+   !ELSEIF(WDR.ge.-157.5.and.WDR.lt.-112.5)THEN
+     !lambda_f = lf_urb(2)
+   !ELSEIF(WDR.gt.67.5.and.WDR.le.112.5)THEN
+     !lambda_f = lf_urb(3)
+   !ELSEIF(WDR.ge.-112.5.and.WDR.lt.-67.5)THEN
+     !lambda_f = lf_urb(3)
+   !ELSEIF(WDR.gt.112.5.and.WDR.le.157.5)THEN
+     !lambda_f = lf_urb(4)
+   !ELSEIF(WDR.ge.-67.5.and.WDR.lt.-22.5)THEN
+     !lambda_f = lf_urb(4)
+   !ELSE
+     !lambda_f = lf_urb(1)
+   !ENDIF
+
+
 
   !Calculate the following urban canyon geometry parameters following Macdonald's (1998) formulations
       Cd         = 1.2
@@ -846,7 +855,8 @@ use module_model_constants, only :  piconst
         WRITE_MESSAGE(mesg)
       end if
 
-      lambda_fr  = stdh_urb/(SW + BW)
+      !lambda_fr  = stdh_urb/(SW + BW)
+      lambda_fr  = 0.1 * ZR / (BW+SW)   ! added by yuqi to estimate over NYC
 
        Z0R = ZR * ( 1.0 - ZDC/ZR) &
              * exp ( -(0.5 * beta_macd * Cd / (VonK**2) &
