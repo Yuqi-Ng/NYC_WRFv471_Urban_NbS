@@ -20,26 +20,26 @@ Number of urban categories: 11
 # ZR:  Roof level (building height)  [ m ]
 #      (sf_urban_physics=1)
 
-ZR: 37.5, 17.5, 6.5, 37.5, 17.5, 6.5, 3., 6.5, 6.5, 10., 10.
+ZR: 63.88, 21.09, 15.48, 15.99, 12.79, 11.66, 3.0, 14.59, 6.5, 20.99, 10.0
 
 #
 # SIGMA_ZED:  Standard Deviation of roof height  [ m ]
 #      (sf_urban_physics=1)
 
-SIGMA_ZED: 4.0,  3.0,  1.0, 1., 1., 1., 1., 1., 1., 1., 1.
+SIGMA_ZED: 19.16,  4.22,  2.32, 4.00, 1.92, 1.40, 0.51, 2.92, 0.65, 4.20, 0.10
 
 #
 # ROOF_WIDTH:  Roof (i.e., building) width  [ m ]
 #      (sf_urban_physics=1)
 
-ROOF_WIDTH: 22.2, 22., 9.6, 42.86, 26.25, 13., 25., 28.9, 43.33, 23.8, 5.
+ROOF_WIDTH: 20.76, 13.91, 11.41, 11.72, 9.91, 8.95, 25., 13.51, 43.33, 15.82, 5.0
 
 #
 # ROAD_WIDTH:  road width  [ m ]
 #      (sf_urban_physics=1)
 #
 
-ROAD_WIDTH: 20., 14., 5.2, 50.0, 35.0, 13.0, 3.33, 32.5, 43.3, 28.6, 100.0
+ROAD_WIDTH: 18.62, 19.46, 14.90, 40.41, 30.13, 50.38, 3.33, 49.17, 43.3, 60.16, 100.0
 
 #
 # AH:  Anthropogenic heat [ W m{-2} ]
@@ -227,12 +227,61 @@ FGR: 0.0
 DZGR:  0.05 0.10 0.15 0.20
 
 #
+# FVG: Fraction of vegetated ground in the urban canyon (0-1)
+#      (sf_urban_physics=1)
+#
+
+FVG: 0.14,0.41,0.47,0.10,0.53,0.54,0.00,0.15,0.00,0.03,0.00
+
+#
+# TREEOPTION [ 0: No urban trees - default, 1: Enable urban trees ]
+#      (sf_urban_physics=1)
+#
+
+TREEOPTION: 1
+
+#
+# TTscheme [ 0: diagnostic approach - default, 1: prognostic approach ]
+#      (sf_urban_physics=1)
+#
+
+TTscheme: 0
+
+#
+# RTREE: Tree crown radius [ m ]
+# HTREE: Tree crown center height [ m ]
+# DTREE: Tree crown center distance from wall [ m ]
+# LAI_TREE: Tree leaf area index [ - ]
+# LAI_VEG: Vegetated ground leaf area index [ - ]
+# Z0VG: Roughness length for momentum of vegetated ground [ m ]
+# Z0HVG: Roughness length for heat of vegetated ground [ m ]
+# CAPVG: Heat capacity of vegetated ground [ J m{-3} K{-1} ]
+# EPSVG: Emissivity of vegetated ground [ - ]
+# EPST: Emissivity of tree canopy [ - ]
+# ALBVG: Albedo of vegetated ground [ - ]
+# ALBT:  Albedo of tree canopy [ - ]
+#      (sf_urban_physics=1, TREEOPTION=1)
+
+RTREE: 1.09, 3.01, 2.52, 1.05, 4.84, 5.08, 0.00, 1.67, 0.00, 0.64, 0.00
+HTREE: 13.91, 11.52, 11.63, 11.74, 7.82, 6.46, 0.0, 11.50, 0.0, 12.87, 0.0
+DTREE: 9.31, 9.73, 7.45, 20.21, 15.07, 25.19, 1.67, 24.59, 21.65, 30.08, 5000. 
+LAI_TREE: 4.40, 4.02, 3.96,4.06, 4.33, 4.77,0.00, 4.17, 0.00,3.92, 0.00
+LAI_VEG: 1.30, 1.30, 1.30,1.30, 1.30, 1.30,0.00, 1.30, 0.00,1.30, 1.30
+Z0VG: 0.01, 0.01, 0.01,0.01, 0.01, 0.01,0.01, 0.01, 0.01,0.01, 0.01
+Z0HVG: 0.001, 0.001, 0.001,0.001, 0.001, 0.001,0.001, 0.001, 0.001,0.001, 0.001
+CAPVG: 1.3E6, 1.3E6, 1.3E6,1.3E6, 1.3E6, 1.3E6,1.3E6, 1.3E6, 1.3E6,1.3E6, 1.3E6
+EPSVG: 0.93, 0.93, 0.93,0.93, 0.93, 0.93,0.93, 0.93, 0.93,0.93, 0.93
+EPST: 0.9, 0.9, 0.9,0.9, 0.9, 0.9,0.9, 0.9, 0.9,0.9, 0.9
+ALBVG: 0.2, 0.2, 0.2,0.2, 0.2, 0.2,0.2, 0.2, 0.2,0.2, 0.2
+ALBT: 0.15, 0.15, 0.15,0.15, 0.15, 0.15,0.15, 0.15, 0.15,0.15, 0.15
+
+#
 # FRC_URB:  Fraction of the urban landscape which does not have natural
 #           vegetation. [ Fraction ]
 #      (sf_urban_physics=1,2,3)
 #
 
-FRC_URB: 0.95, 0.9,0.85, 0.65, 0.7, 0.6, 0.85, 0.85, 0.3, 0.55, 1.00
+FRC_URB: 0.93, 0.97,0.99, 0.81, 0.97, 0.96, 0.00, 0.89, 0.00, 0.85, 0.00
 
 #
 # CAPR:  Heat capacity of roof  [ J m{-3} K{-1} ]
@@ -644,4 +693,3 @@ BUILDING HEIGHTS: 11
 #      [m]       [%]
        5.0      100.0
 END BUILDING HEIGHTS
-
