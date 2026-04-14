@@ -765,10 +765,6 @@ use module_model_constants, only :  piconst
 ! Glotfelty, 2012/07/05, NUDAPT Modification
 
  if(mh_urb.gt.0.0 .and. .not. distributed_aerodynamics_option)THEN 
-  !write(mesg,*) 'Mean Height NUDAPT',mh_urb
-  !WRITE_MESSAGE(mesg)
-  !write(mesg,*) 'Mean Height Table',ZR
-  !WRITE_MESSAGE(mesg)
   if(zo_check.eq.1)THEN
    write(mesg,*) 'Mean Height NUDAPT',mh_urb
    WRITE_MESSAGE(mesg)
@@ -787,27 +783,11 @@ use module_model_constants, only :  piconst
    write(mesg,*) 'Plan Area Fraction table', R
    WRITE_MESSAGE(mesg)
   end if
-  !write(mesg,*) 'Area Weighted Mean Height',hgt_urb
-  !WRITE_MESSAGE(mesg)
-  !write(mesg,*) 'Plan Area Fraction', lp_urb
-  !WRITE_MESSAGE(mesg)
-  !write(mesg,*) 'STD Height', stdh_urb
-  !WRITE_MESSAGE(mesg)
-  !write(mesg,*) 'Frontal Area Index',lf_urb
-  !WRITE_MESSAGE(mesg)
-  !write(mesg,*) 'Urban Fraction',frc_urb
-  !WRITE_MESSAGE(mesg)
-  !write(mesg,*) 'Building Surf Ratio',lb_urb
-  !WRITE_MESSAGE(mesg)
  
  !Calculate Building Width and Street Width Based on BEP formulation
  if(lb_urb.gt.lp_urb)THEN             ! building surface to plan area ratio > plain area fraction  (yuqi)
   BW=2.*hgt_urb*lp_urb/(lb_urb-lp_urb)
   SW=2.*hgt_urb*lp_urb*((frc_urb/lp_urb)-1.)/(lb_urb-lp_urb)
-  !write(mesg,*) 'Building Width',BW
-  !WRITE_MESSAGE(mesg)
-  !write(mesg,*) 'Street Width',SW
-  !WRITE_MESSAGE(mesg)
  elseif (SW.lt.0.0.or.BW.lt.0.0)then
   BW=BUILDING_WIDTH(1)
   SW=STREET_WIDTH(1)
@@ -870,9 +850,7 @@ use module_model_constants, only :  piconst
 
        Z0R = ZR * ( 1.0 - ZDC/ZR) &
              * exp ( -(0.5 * beta_macd * Cd / (VonK**2) &
-              * ( 1.0-ZDC/ZR) * lambda_fr )**(-0.5))
-
-    
+              * ( 1.0-ZDC/ZR) * lambda_fr )**(-0.5))  
 
        Z0HC = 0.1 * Z0C
 
