@@ -875,21 +875,26 @@ use module_model_constants, only :  piconst
      HGT = lambda_f
    END IF
 
-   IF( ZDC+Z0C+2. >= ZA) THEN
-      write(mesg,*) 'urban fatal: ZA=', ZA, ' ZDC=', ZDC, ' Z0C=', Z0C, ' ZR=', ZR
-      WRITE_MESSAGE(mesg)
-      write(mesg,*) 'urban fatal: ZDC+Z0C+2=', ZDC+Z0C+2.0, ' excess=', ZDC+Z0C+2.0-ZA
-      WRITE_MESSAGE(mesg)
-      write(mesg,*) 'urban fatal: R=', R, ' lambda_f=', lambda_f, ' HGT=', HGT
-      WRITE_MESSAGE(mesg)
-      write(mesg,*) 'urban fatal: mh_urb=', mh_urb, ' lp_urb=', lp_urb, ' lf_urb=', lf_urb
-      WRITE_MESSAGE(mesg)
-      write(mesg,*) 'urban fatal: z0_urb=', z0_urb, ' vegfrac_in=', vegfrac_in
-      WRITE_MESSAGE(mesg)
-      write(mesg,*) 'urban fatal: distributed_aerodynamics_option=', distributed_aerodynamics_option
-      WRITE_MESSAGE(mesg)
-      FATAL_ERROR("ZDC + Z0C + 2m is larger than the 1st WRF level - Stop in subroutine urban - change ZDC and Z0C" )
-   END IF
+
+   if (ZDC + Z0C + 2.0 >= ZA) then
+      Z0C = max(0.1, ZA - ZDC - 2.0 - 0.05)
+   endif
+
+   !IF( ZDC+Z0C+2. >= ZA) THEN
+      !write(mesg,*) 'urban fatal: ZA=', ZA, ' ZDC=', ZDC, ' Z0C=', Z0C, ' ZR=', ZR
+      !WRITE_MESSAGE(mesg)
+      !write(mesg,*) 'urban fatal: ZDC+Z0C+2=', ZDC+Z0C+2.0, ' excess=', ZDC+Z0C+2.0-ZA
+      !WRITE_MESSAGE(mesg)
+      !write(mesg,*) 'urban fatal: R=', R, ' lambda_f=', lambda_f, ' HGT=', HGT
+      !WRITE_MESSAGE(mesg)
+      !write(mesg,*) 'urban fatal: mh_urb=', mh_urb, ' lp_urb=', lp_urb, ' lf_urb=', lf_urb
+      !WRITE_MESSAGE(mesg)
+      !write(mesg,*) 'urban fatal: z0_urb=', z0_urb, ' vegfrac_in=', vegfrac_in
+      !WRITE_MESSAGE(mesg)
+      !write(mesg,*) 'urban fatal: distributed_aerodynamics_option=', distributed_aerodynamics_option
+      !WRITE_MESSAGE(mesg)
+      !FATAL_ERROR("ZDC + Z0C + 2m is larger than the 1st WRF level - Stop in subroutine urban - change ZDC and Z0C" )
+   !END IF
 
    IF(.NOT.LSOLAR) THEN
      SSGD = SRATIO*SSG
