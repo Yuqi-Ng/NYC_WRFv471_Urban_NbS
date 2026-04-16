@@ -1079,9 +1079,7 @@ use module_model_constants, only :  piconst
          SDT = SD * (RTREE * SQRT(1 + XI**2.) + DTREE - (HGT - HTREE) * XI)/(2. * PI * RTREE)
        ELSE                                           ! XI <= tan2 in the sun - completely illuminated
          SDT = SD * (2. * RTREE * SQRT(1. + XI**2.))/(2. * PI * RTREE)
-       END IF
-       print*, 'THEATAZ is:', THEATAZ      ! add by yuqi for testing purpose
-       
+       END IF     
 
        CALL SHADOW_TREE(XI, HGT, RW, HTREE, RTREE, DTREE, CHI_SHADED, ETA_SHADED, CHI_SHADED_TREE, ETA_SHADED_TREE)
        ! print*, 'road weidth, building height, tree height, tree radius are:', RW, HGT, HTREE, RTREE       ! add by yuqi for testing purpose
