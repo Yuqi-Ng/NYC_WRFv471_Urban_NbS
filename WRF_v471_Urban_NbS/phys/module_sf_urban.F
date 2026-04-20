@@ -1981,7 +1981,7 @@ ENDIF
          G0G=AKSG*(TGP-TGL(1))/(DZG(1)/2)
 
          CALL TDFCND (KVG,SMG(KZ), QUARTZ, SMCMAX )
-         KVG = KVG * EXP(-2.0 * VFAC)                      ! comment this to allow heat to be transferred efficiently to deeper soil (yuqi)
+         !KVG = KVG * EXP(-2.0 * VFAC)                      ! comment this to allow heat to be transferred efficiently to deeper soil (yuqi)
          G0VG= KVG * (TVGP-TVGL(1))/(DZVG(1)/2.)/697.7/60   ! unit: cal/cm2/s (yuqi)
 
 
