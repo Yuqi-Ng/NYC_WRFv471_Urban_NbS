@@ -1752,9 +1752,9 @@ ENDIF
 
       DO ITERATION=1,100
 
-         TBP = MAX(223.15, MIN(353.15, TBP))
-         TGP = MAX(223.15, MIN(353.15, TGP))
-         TVGP = MAX(223.15, MIN(353.15, TVGP))
+         TBP = MAX(273.15, MIN(323.15, TBP))
+         TGP = MAX(273.15, MIN(323.15, TGP))
+         TVGP = MAX(273.15, MIN(323.15, TVGP))
 		 
          KZ=1     
          ES=6.11*EXP( (2.5*10**6/461.51)*(TVGP-273.15)/(273.15*TVGP) )
@@ -2059,9 +2059,9 @@ ENDIF
          TGEP=TGE
 		 
          ! After updating the temperatures (e.g., TBP = TB)   (yuqi)
-         TBP = MAX(223.15, MIN(353.15, TBP)) !-50C to +80C
-         TGP = MAX(223.15, MIN(353.15, TGP))
-         TVGP = MAX(223.15, MIN(353.15, TVGP))
+         TBP = MAX(273.15, MIN(323.15, TBP)) ! 0C to +50C
+         TGP = MAX(273.15, MIN(323.15, TGP))
+         TVGP = MAX(273.15, MIN(323.15, TVGP))
 
          !IF (distributed_aerodynamics_option) THEN
             !DTC = 0.0
