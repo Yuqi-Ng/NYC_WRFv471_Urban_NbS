@@ -2300,7 +2300,7 @@ ENDIF
        ! TT = ( (640 / DELT) * TTP  +  SLEAF + RLEAF - ELET  +  ALPHAT*697.7*60 * TCP ) /( (640/ DELT) + ALPHAT*697.7*60 )    ! explicitly solving TT
        HT = ALPHAT * (TTP - TCP)
 
-       
+
        TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1 - FVG) * ALPHAG + W * ALPHAB
        TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2 * RTREE * LAI_TREE * (HT/100)
        TC = TC2 / TC1
@@ -5343,22 +5343,20 @@ FUNCTION kanda_kawai_svf(lp, lf) RESULT (svf)
 ! Refer to Sang and Soon, BLM, 2007
 ! ---------------------------------------------------------------------- 
 
-SUBROUTINE force_restore_tree(DELT,S,R,H,LE,LAI,TSP,TS)
-      IMPLICIT NONE
+   SUBROUTINE force_restore_tree(DELT,S,R,H,LE,LAI,TSP,TS)
+         IMPLICIT NONE
 
-      REAL, INTENT(IN)  :: DELT,S,R,H,LE,LAI,TSP
-      REAL, INTENT(OUT) :: TS
-      REAL              :: C, DTS
+         REAL, INTENT(IN)  :: DELT,S,R,H,LE,LAI,TSP
+         REAL, INTENT(OUT) :: TS
+         REAL              :: C, DTS
 
-      C = 640.0 / 4.186 / 10000.0
+         C = 640.0 / 4.186 / 10000.0
 
-      DTS = DELT * (S + R - H - LE) / C
-      DTS = SIGN(MIN(ABS(DTS),5.0), DTS)
+         DTS = DELT * (S + R - H - LE) / C
+         DTS = SIGN(MIN(ABS(DTS),5.0), DTS)
 
-      TS = TSP + DTS
-      TS = MAX(273.15, MIN(323.15, TS))
-
-END SUBROUTINE force_restore_tree
+         TS = TSP + DTS
+         TS = MAX(273.15, MIN(323.15, TS))
 
 ! ----------------------------------------------------------------------
     END SUBROUTINE force_restore_tree
