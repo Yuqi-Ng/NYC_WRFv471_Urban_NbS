@@ -1433,7 +1433,7 @@ ENDIF
 !Yang 10/10/2013 -- LH from impervious wall and ground
  IF (IMP_SCHEME==1) then
    BETB=0.0
-   IF(RAIN > 1.) BETG=0.7
+   IF(RAIN > 1.) BETG=0.1   ! change BETG from 0.7 to 0.1 (yuqi to debug)
  ENDIF
 
  IF (IMP_SCHEME==2) then
