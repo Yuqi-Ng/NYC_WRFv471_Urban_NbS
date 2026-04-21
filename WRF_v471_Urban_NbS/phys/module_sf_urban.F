@@ -2071,7 +2071,7 @@ ENDIF
          TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1 - FVG) * ALPHAG + W * ALPHAB
          TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2 * RTREE * LAI_TREE * (HT/100)
          TC = TC2 / TC1
-         TC = MAX(223.15, MIN(353.15, TC))
+         TC = MAX(273.15, MIN(323.15, TC))
          TCP = TC                          ! update TCP  (yuqi)
 		 
 		   ! Chenghao: HT unit is cgs, keep it as is [RHO - g/cm3, CP - cal/g/K]
@@ -2141,6 +2141,47 @@ ENDIF
        !  Note, Conflict With Vegetated Ground Scheme (Huang)
        !-------------------------------------------------------------------------------
   
+
+         KZ=1     
+         ES=6.11*EXP( (2.5*10**6/461.51)*(TVGP-273.15)/(273.15*TVGP) )
+         QS0VG=0.622*ES/(PS-0.378*ES) 
+         EPVG=RHOO*CHVG*UC*(QS0VG-QCP)
+
+         SMGP = MAX(SMGP, SMCWLT) !added by yuqi
+         SMGP = MIN(SMGP, SMCMAX)
+
+         VFAC = 1.0 - EXP(-0.52 * LAI_VEG)           ! following PhenologyMainMod.F90 in Noah_MP (yuqi) 
+         IF (EPVG > 0.0) THEN 
+            CALL DIREVAP (EDIRG,EPVG,SMGP(KZ),VFAC,SMCMAX,SMCDRY,FXEXP)                              ! CONTRIBUTED FROM BARE SOIL (YUQI) 
+            CALL TRANSP  (ETTG,ETG,ECG,VFAC,EPVG,CMCGP,CFACTR,CMCMAX,LAI_VEG,RSMIN,RSMAX,RGL,SX, &   ! CONTRIBUTED FROM VEGETED, USE TC AND QC INSTEAD OF TA AND QA (YUQI) 
+                         TVGP,TCP,QCP,SMGP,SMCWLT,SMCREF,CPP,PS,CHVG,EPSVG,DELT,NROOT,NVG,DZVG, &    ! NROOT IS NUMBER OF VEGE ROOT, SAME AS IN GREEN ROOF (YUQI) 
+                           ZSOILG,HS) 
+            CALL SMFLX   (SMGP,SMG,NVG,CMCGP,CMCG,DELT,RAIN,ZSOILG,SMCMAX,BEXP,SMCWLT,SROOTP,DKSAT,&   ! NVG: LAYER OF VEGETATED GROUND (YUQI) 
+                           DWSAT,VFAC,CMCMAX,SRUN1,SRUN2,SRUN3,EDIRG,ECG,ETG,DRIPG)   
+         ELSE
+            DEW  = - EPVG
+            RAINDR = RAIN  + DEW * 3600
+            EDIRG=0.0     
+            ECG =0.0
+            ETTG=0.0
+            CALL SMFLX (SMGP,SMG,NVG,CMCGP,CMCG,DELT,RAINDR,ZSOILG,SMCMAX,BEXP,SMCWLT,SROOTP,DKSAT, &
+                        DWSAT,VFAC,CMCMAX,SRUN1,SRUN2,SRUN3,EDIRG,ECG,ETG,DRIPG)  
+         END IF
+        
+         SMG = MAX(SMG, SMCWLT) !added by yuqi
+         SMG = MIN(SMG, SMCMAX)
+
+         EDIRG = EDIRG  * 1000
+         ETTG  = ETTG   * 1000
+         ECG   = ECG    * 1000
+         ETAG  = EDIRG  + ETTG + ECG  ! unit: converted from m/s to kg/m2/s (Chenghao)
+         IF (ETAG < 1.E-20) ETAG = 0
+         IF ( EPVG <= 0 ) THEN
+            BETVG = 0
+         ELSE
+            BETVG = ETAG / EPVG
+         END IF 
+
        ES=6.11*EXP( (2.5*10**6/461.51)*(TBP-273.15)/(273.15*TBP) ) 
        QS0B=0.622*ES/(PS-0.378*ES) 
 
@@ -2212,29 +2253,62 @@ ENDIF
        ELEG=RHO*EL*CHG*UC*BETG*(QS0G-QCP)*100
        G0G=SG+RG-HG-ELEG    ! unit: cal/cm2/s
 
-       RA_LEAF = 58 * (LAI_TREE**0.56) * SQRT(DLEAF/UC)             
-       HT = (SLEAF + RLEAF - ELET - (TT - TTP)/DELT*640)/697.7/60. ! HT in unit of cal/cm2/s (unit consistent with HB and HG)
-       W2 = 0.5 * (SMGP(NVG/2-1) + SMGP(NVG/2))    ! POTENTIAL ERROR (YUQI)
-       CALL STOMATAL(RS_LEAF, RSMIN, SLEAF, LAI_TREE, W2, SMCREF, SMCMAX, TC, TT, QC, QS0T) 
-       CALL LELEAF(ELET, SLEAF, RLEAF, RA_LEAF, RS_LEAF, RHOO, TC, QC, QS0T)
+       HVG=RHO*CP*CHVG*UC*(TVGP-TCP)*100       ! Note: unit [cal/cm2/s]
+       ELEVG = ETAG * EL * 0.1        ! unit: cal/cm2/s
+       CALL TDFCND (KVG,SMG(KZ), QUARTZ, SMCMAX )
+       !KVG = KVG * EXP(-2.0 * VFAC)  
+       G0VG= KVG * (TVGP-TVGL(1))/(DZVG(1)/2.)/697.7/60   ! unit: cal/cm2/s (Yuqi)
+
+
+       ES=6.11*EXP( (2.5*10**6/461.51)*(TTP-273.15)/(273.15*TTP) )        
+       QS0T=0.622*ES/(PS-0.378*ES)   
+       RA_LEAF = 58 * (LAI_TREE**0.56) * SQRT(DLEAF/UC) 
+
+
+       ! Option1: mid-layer approach
+       !W2 = 0.5 * (SMG(NVG/2-1) + SMG(NVG/2))   
+      
+       ! Option2:  weighted averaged approach
+       W2_num = 0.0
+       W2_den = 0.0
+       DO K = 1, 3
+          W2_num = W2_num + SMG(K) * DZVG(K)
+          W2_den = W2_den + DZVG(K)
+       END DO
+       W2 = W2_num / W2_den
+
+
+       CALL STOMATAL(RS_LEAF, RSMIN, SLEAF, LAI_TREE, W2, SMCWLT, SMCMAX, TCP, TTP, QCP, QS0T)
+       CALL LELEAF(ELET, SLEAF, RLEAF, RA_LEAF, RS_LEAF, RHOO, TCP, QCP, QS0T)
 
 
        CALL force_restore(CAPB,AKSB,DELT,SB,RB,HB,ELEB,TBLEND,TBP,TB)
        CALL force_restore(CAPG,AKSG,DELT,SG,RG,HG,ELEG,TGLEND,TGP,TG)
+       CALL force_restore(CAPVG,KVG/697.7/60,DELT,SVG,RVG,HVG,ELEVG,TGLEND,TVGP,TVG)
        CALL force_restore_tree(DELT,ST,RT,HT,ELET/(697.7*60),LAI_TREE,TTP,TT) ! to be fixed (Yuqi 01/21/2026)
 
        TBP=TB
        TGP=TG
+       TVGP=TVG
        TTP=TT
+       
+      ! Option1: residual approach (Yuqi) / diagnostic approach  
+      ! HT = (SLEAF + RLEAF - ELET - (TT - TTP)/DELT)*640 * (1/697.7/60.)      ! following e.q 28 in (Ryu, 2016), unit same as HB, HG in [cal/cm2/s], change from 640 to 700
+                  
+       ! Option2: resistance approach (Yuqi) / prognostic approach
+       ALPHAT = (RHO * CP * 100) / (1.274 * RA_LEAF) ! unit [cal/cm2/s/K] ([g/cm3] * [cal/g/K] / [s/m] * [m/cm]) 
+       ! TT = ( (640 / DELT) * TTP  +  SLEAF + RLEAF - ELET  +  ALPHAT*697.7*60 * TCP ) /( (640/ DELT) + ALPHAT*697.7*60 )    ! explicitly solving TT
+       HT = ALPHAT * (TTP - TCP)
+
+       
        TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1 - FVG) * ALPHAG + W * ALPHAB
        TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2 * RTREE * LAI_TREE * (HT/100)
        TC = TC2 / TC1
-	    ! Chenghao: HT unit is cgs, keep it as is [RHO - g/cm3, CP - cal/g/K]
-
+       TC = MAX(273.15, MIN(323.15, TC))
+		  
        QC1 = W * ALPHAB * BETB + RW * (1 - FVG) * ALPHAG * BETG + RW * ALPHAC
        QC2 = W * ALPHAB * BETB * QS0B + RW * (1 - FVG) * ALPHAG * BETG * QS0G + RW * FVG * ETAG *CP / 1000 + RW * ALPHAC * QA + (2 * RTREE * LAI_TREE * CP * (ELET/697.7/60.)/100/EL)
        QC=QC2/QC1
-	    ! Chenghao: ELET - [W/m2], convert it to cgs to be consistent with all other terms (e.g., ALPHAB)
 		 
        TCP=TC
        QCP=QC
@@ -5269,17 +5343,22 @@ FUNCTION kanda_kawai_svf(lp, lf) RESULT (svf)
 ! Refer to Sang and Soon, BLM, 2007
 ! ---------------------------------------------------------------------- 
 
-   SUBROUTINE force_restore_tree(DELT,S,R,H,LE,LAI,TSP,TS)
+SUBROUTINE force_restore_tree(DELT,S,R,H,LE,LAI,TSP,TS)
       IMPLICIT NONE
 
       REAL, INTENT(IN)  :: DELT,S,R,H,LE,LAI,TSP
       REAL, INTENT(OUT) :: TS
-      REAL              :: C
-     
-      ! C = 4186 * LAI
-      C = 640 !(heat capacity per unit leaf area: 640 J/m2/K)
+      REAL              :: C, DTS
 
-      TS = TSP + DELT* (S+R-H-LE)/C 
+      C = 640.0 / 4.186 / 10000.0
+
+      DTS = DELT * (S + R - H - LE) / C
+      DTS = SIGN(MIN(ABS(DTS),5.0), DTS)
+
+      TS = TSP + DTS
+      TS = MAX(273.15, MIN(323.15, TS))
+
+END SUBROUTINE force_restore_tree
 
 ! ----------------------------------------------------------------------
     END SUBROUTINE force_restore_tree
