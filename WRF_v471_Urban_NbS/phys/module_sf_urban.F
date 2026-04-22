@@ -713,8 +713,8 @@ use module_model_constants, only :  piconst
    real,parameter  :: RSMIN    = 100    ! Minimum stomatal resistance
    real,parameter  :: RGL      = 100    ! Radiation limit where photosynthesis begins
    real,parameter  :: CFACTR   = 0.5    ! Parameter used in the canopy inteception calculation        
-   real,parameter  :: DWSAT    = 3.47E-05 ! Saturated soil conductivity            
-   real,parameter  :: DKSAT    = 8.05E-06  ! Saturated soil diffusivity
+   real,parameter  :: DWSAT    = 3.47E-5 ! Saturated soil conductivity            
+   real,parameter  :: DKSAT    = 8.05E-6  ! Saturated soil diffusivity
    real,parameter  :: BEXP     = 4.9   ! B parameter in soil hydraulic calculation
    real,parameter  :: FXEXP    = 2.0    ! Parameter for computing direct soil evaporation        
    real,parameter  :: ZBOT     = -2.0   
@@ -958,7 +958,7 @@ use module_model_constants, only :  piconst
 
    ! ===Yuqi Huang, 2024/07, urban tree & vegetation variables for UCM based on ASLUM
    TVGP   = TVG
-   TGEP   = TG
+   TGEP   = TGE
    CMCGP  = CMCG
    SMGP   = SMG 
    TTP    = TT
@@ -2142,28 +2142,7 @@ ENDIF
        !-------------------------------------------------------------------------------
   
 
-         IF (CH_SCHEME == 1) THEN                    ! calculate heat exchange coefficient for vegetated ground (yuqi)
-            Z=ZDC
-            BHVG=LOG(Z0VG/Z0HVG)/0.4
-            RIBVG=(9.8*2/(TCP+TVGP))*(TCP-TVGP)*(Z+Z0VG)/(UC*UC)
-            CALL mos(XXXVG,ALPHAVG,CDVG,BHVG,RIBVG,Z,Z0VG,UC,TCP,TVGP,RHO)
-         ELSE
-            ALPHAVG=RHO*CP*(6.15+4.18*UC)/1200
-            IF(UC > 5) ALPHAVG=RHO*CP*(7.51*UC**0.78)/1200
-         END IF
-         CHVG=ALPHAVG/RHO/CP/UC
-
-         SRUN1 = 0.0                                 ! mainly following green roof's scheme below (yuqi)
-         SRUN2 = 0.0
-         SRUN3 = 0.0
-
-         DZVG = DZGR                                 ! set identical green roof depth and vegetated ground layer depth (yuqi) [m]
-         KZ = 1  
-         ZSOILG (KZ) = - DZVG (KZ)                   ! dz: (positive) depth of each single layer; zsoil: (negative) accumulated depth from ground  (yuqi)
-         DO KZ = 2,NVG                               ! nvg: total layer of vegetated ground, = 4 in here (yuqi)
-            ZSOILG (KZ) = - DZVG(KZ) + ZSOILG (KZ -1)
-         END DO
-
+         KZ=1     
          ES=6.11*EXP( (2.5*10**6/461.51)*(TVGP-273.15)/(273.15*TVGP) )
          QS0VG=0.622*ES/(PS-0.378*ES) 
          EPVG=RHOO*CHVG*UC*(QS0VG-QCP)
