@@ -958,7 +958,7 @@ use module_model_constants, only :  piconst
 
    ! ===Yuqi Huang, 2024/07, urban tree & vegetation variables for UCM based on ASLUM
    TVGP   = TVG
-   TGEP   = TGE
+   TGEP   = (1-FVG)*TG+FVG*TVG
    CMCGP  = CMCG
    SMGP   = SMG 
    TTP    = TT
@@ -2141,8 +2141,28 @@ ENDIF
        !  Note, Conflict With Vegetated Ground Scheme (Huang)
        !-------------------------------------------------------------------------------
   
+         IF (CH_SCHEME == 1) THEN                    ! calculate heat exchange coefficient for vegetated ground (yuqi)
+            Z=ZDC
+            BHVG=LOG(Z0VG/Z0HVG)/0.4
+            RIBVG=(9.8*2/(TCP+TVGP))*(TCP-TVGP)*(Z+Z0VG)/(UC*UC)
+            CALL mos(XXXVG,ALPHAVG,CDVG,BHVG,RIBVG,Z,Z0VG,UC,TCP,TVGP,RHO)
+         ELSE
+            ALPHAVG=RHO*CP*(6.15+4.18*UC)/1200
+            IF(UC > 5) ALPHAVG=RHO*CP*(7.51*UC**0.78)/1200
+         END IF
+         CHVG=ALPHAVG/RHO/CP/UC
 
-         KZ=1     
+         SRUN1 = 0.0                                 ! mainly following green roof's scheme below (yuqi)
+         SRUN2 = 0.0
+         SRUN3 = 0.0
+
+         DZVG = DZGR                                 ! set identical green roof depth and vegetated ground layer depth (yuqi) [m]
+         KZ = 1  
+         ZSOILG (KZ) = - DZVG (KZ)                   ! dz: (positive) depth of each single layer; zsoil: (negative) accumulated depth from ground  (yuqi)
+         DO KZ = 2,NVG                               ! nvg: total layer of vegetated ground, = 4 in here (yuqi)
+            ZSOILG (KZ) = - DZVG(KZ) + ZSOILG (KZ -1)
+         END DO
+  
          ES=6.11*EXP( (2.5*10**6/461.51)*(TVGP-273.15)/(273.15*TVGP) )
          QS0VG=0.622*ES/(PS-0.378*ES) 
          EPVG=RHOO*CHVG*UC*(QS0VG-QCP)
