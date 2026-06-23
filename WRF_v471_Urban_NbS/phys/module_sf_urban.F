@@ -2467,7 +2467,7 @@ ENDIF
       WRITE(*,*) ' SLEAF=', SLEAF, ' RLEAF=', RLEAF, ' ELET=', ELET
       WRITE(*,*) ' RTREE=', RTREE, ' HTREE=', HTREE, ' LAI_TREE=', LAI_TREE, ' FVG=', FVG
       CALL FATAL_ERROR('BAD_HFX_COMPONENT')
-   ND IF
+   END IF
 
 
    LH_KINEMATIC = FLXHUM * RHOO   ! Latent heat, Kinematic      [kg/m/m/s]
