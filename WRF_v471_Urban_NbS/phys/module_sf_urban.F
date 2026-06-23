@@ -2463,7 +2463,6 @@ ENDIF
 
    FLXUV = MAX(FLXUV, 1.0E-8)     ! added by yuqi 
    UST = SQRT(FLXUV)              ! u* [m/s]
-   UST = MAX(UST, 0.01)
    TST = -FLXTH/UST               ! T* [K]
    QST = -FLXHUM/UST              ! q* [-]
 
