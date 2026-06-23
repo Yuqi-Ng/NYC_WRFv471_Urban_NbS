@@ -431,6 +431,7 @@ use module_model_constants, only :  piconst
    REAL :: SSOILG  ! Soil Heat Flux output from SHFLX W/m2  
    REAL :: TGE, TGEP, QS0GE, ALPHAGE, FLXTHVG, FLXTHT ! effective ground values
    REAL :: CMCGP     ! Canopy Intercepted Water on Vegetated Ground
+   LOGICAL :: TREE_ACTIVE  ! newly added for NYC simulation (yuqi 2026/6/23)
    !----------- fixed universe parameters for urban vegetation  ---------------
    INTEGER, PARAMETER :: NVG   = 4         ! Total Layer of Vegetated Ground
    REAL, PARAMETER    :: CPP=1004.5        ! heat capacity of dry air    [J/K/kg]
@@ -761,6 +762,22 @@ use module_model_constants, only :  piconst
                   BOUNDR,BOUNDB,BOUNDG,CH_SCHEME,TS_SCHEME,      &
                   AKANDA_URBAN,ALH)
 
+TREE_ACTIVE = .FALSE.
+
+IF (TREEOPTION == 1 .AND. &
+    RTREE > 1.0E-6 .AND. &
+    HTREE > 1.0E-6 .AND. &
+    LAI_TREE > 1.0E-6 .AND. &
+    FVG > 1.0E-6 .AND. &
+    RW > 1.0E-6 .AND. &
+    HGT > 1.0E-6 .AND. &
+    HTREE > RTREE .AND. &
+    HTREE + RTREE < HGT .AND. &
+    2.0 * RTREE < RW) THEN
+
+    TREE_ACTIVE = .TRUE.
+
+ENDIF
 
 ! Glotfelty, 2012/07/05, NUDAPT Modification
 
@@ -993,7 +1010,7 @@ use module_model_constants, only :  piconst
 ! SHADOW has not been activated in previous versions of SLUCM (chenghao) - it's not turned on
 
    TAU = EXP(-0.61 * LAI_TREE)
-   IF (TREEOPTION .eq. 1 ) THEN
+   IF (TREE_ACTIVE) THEN
       CALL VF_TREE_ANALYTICAL(RW, HGT, HTREE, RTREE, TAU, VFGS_TREE, VFGW_TREE, VFGT_TREE, VFWS_TREE, VFWG_TREE, VFWW_TREE, VFWT_TREE, VFTS_TREE, VFTG_TREE, VFTW_TREE)
    END IF
    
@@ -1046,7 +1063,7 @@ use module_model_constants, only :  piconst
        SG2=SB1*ALBB/(1.-ALBB)*VFGW*(1.-ALBG)
        SB2=SG1*ALBG/(1.-ALBG)*VFWG*(1.-ALBB) + SB1*ALBB*VFWW    ! add one term in the new version (yuqi)
 
-     ELSEIF (TREEOPTION .ne. 1) THEN         ! shadow effects model without urban vegetations
+     ELSEIF (.NOT. TREE_ACTIVE) THEN         ! shadow effects model without urban vegetations
 
        SR1=SD*(1.-ALBR)+SQ*(1.-ALBR)
        SGR1=SD*(1.-ALBV)+SQ*(1.-ALBV)
@@ -1058,7 +1075,7 @@ use module_model_constants, only :  piconst
        ! ------------------------------------------------------------------------------------------------------------------  
        ! tree module only activated under shadow case
        ! ------------------------------------------------------------------------------------------------------------------ 
-       IF ( HTREE+RTREE .gt. ZR) THEN   ! add by Huang
+       IF ( HTREE+RTREE .gt. HGT) THEN   ! add by Huang
            FATAL_ERROR("tree crown protrude roof height, adjust tree size")
        END IF
         
@@ -1110,7 +1127,7 @@ use module_model_constants, only :  piconst
      SVG=SVG1+SVG2	   ! added by yuqi
      SB=SB1+SB2
 
-     IF (TREEOPTION == 1) THEN
+     IF (TREE_ACTIVE) THEN
      ST = (ST1 + ST2) * 2. * PI * RTREE * (1 - TAU)      ! unit: [cal/cm2/s]
      SLEAF = (ST / (2. * RTREE * LAI_TREE)) *697.7*60.   ! unit: [w/m/m]
      ELSE 
@@ -1118,11 +1135,11 @@ use module_model_constants, only :  piconst
      END IF
 
 
-     IF (GROPTION ==1 .and. TREEOPTION .ne. 1) THEN
+     IF (GROPTION ==1 .and. .NOT. TREE_ACTIVE) THEN
      SNET=R*FGR*SGR+R*(1.-FGR)*SR+W*SB+RW*SG+ST
-     ELSEIF (TREEOPTION == 1 .and. GROPTION .ne. 1) THEN
+     ELSEIF (TREE_ACTIVE .and. GROPTION .ne. 1) THEN
      SNET=R*SR+W*SB+(1.-FVG)*RW*SG+FVG*RW*SVG+ST
-     ELSEIF (TREEOPTION == 1 .and. GROPTION ==1) THEN
+     ELSEIF (TREE_ACTIVE .and. GROPTION ==1) THEN
      SNET=R*FGR*SGR+R*(1.-FGR)*SR+W*SB+(1.-FVG)*RW*SG+FVG*RW*SVG+ST
      ELSE
      SNET=R*SR+W*SB+RW*SG+ST
@@ -1474,7 +1491,7 @@ ENDIF
 ! ENERGY BUDGET WITHOUT URBAN TREE 
 																   
 !-------------------------------------------------------------------------------
-   IF (TREEOPTION .ne. 1) THEN
+   IF (.NOT. TREE_ACTIVE) THEN
  
      IF (TS_SCHEME == 1) THEN
      !-------------------------------------------------------------------------------
@@ -2350,7 +2367,7 @@ ENDIF
 ! Total Fluxes from Urban Canopy
 !-------------------------------------------------------------------------------
 !===Yang, 2014/10/08, cal. ah. alh. green roof===
- IF (groption==1 .and. TREEOPTION .ne. 1) THEN
+ IF (groption==1 .and. .NOT. TREE_ACTIVE) THEN
    if(ahoption==1) then
      FLXTH  = ((1.-FGR)*R*FLXTHR + FGR*R*FLXTHGR + W*FLXTHB + RW*FLXTHG)+ AH/RHOO/CPP
    else
@@ -2365,7 +2382,7 @@ ENDIF
    FLXG =   ((1.-FGR)*R*G0R + FGR*R*G0GR+ W*G0B + RW*G0G)
    LNET =   (1.-FGR) * R * RR + FGR *R* RGR + W * RB +  RW * RG 
  
- ELSEIF (groption .ne. 1 .and. TREEOPTION == 1) THEN
+ ELSEIF (groption .ne. 1 .and. TREE_ACTIVE) THEN
    if (ahoption==1) then
       FLXTH  = ( R*FLXTHR  + W*FLXTHB  + (1 - FVG) *  RW*FLXTHG + FVG * RW * FLXTHVG ) + AH/RHOO/CPP + FLXTHT*LAI_TREE*2*RTREE
    else
@@ -2384,7 +2401,7 @@ ENDIF
    FLXG =   R*G0R + W*G0B + (1 - FVG)*RW*G0G + FVG*RW*G0VG 
    LNET =   R*RR + W*RB + (1 - FVG)*RW*RG + FVG*RW*RVG + RT * 2*PI*RTREE*(1-TAU)
 
- ELSEIF (groption == 1 .and. TREEOPTION == 1) THEN
+ ELSEIF (groption == 1 .and. TREE_ACTIVE) THEN
    if (ahoption==1) then
       FLXTH  = ( (1-FGR)*R*FLXTHR + FGR*R*FLXTHGR  + W*FLXTHB  + (1 - FVG) *  RW*FLXTHG + FVG * RW * FLXTHVG ) + AH/RHOO/CPP + FLXTHT*LAI_TREE*2*RTREE
    else
