@@ -2460,6 +2460,8 @@ ENDIF
    G = -FLXG*697.7*60.            ! [W/m/m]
    RN = (SNET+LNET)*697.7*60.     ! Net radiation [W/m/m]
 
+
+   FLXUV = MAX(FLXUV, 1.0E-8)     ! added by yuqi 
    UST = SQRT(FLXUV)              ! u* [m/s]
    TST = -FLXTH/UST               ! T* [K]
    QST = -FLXHUM/UST              ! q* [-]
@@ -2519,6 +2521,12 @@ ENDIF
    !ELSE																				  
    TS = TA + FLXTH/CHS    ! surface potential temp (flux temp)
    QS = QA + FLXHUM/CHS   ! surface humidity
+
+   CHS_LOCAL = MAX(CHS_LOCAL, 1.0E-3)
+
+   TS = TA + FLXTH / CHS_LOCAL  below added by yuqi 06/23/2026
+   QS = QA + FLXHUM / CHS_LOCAL
+
   ! END IF
 
 !-------------------------------------------------------
