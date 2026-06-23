@@ -2452,6 +2452,24 @@ ENDIF
 
    SH    = FLXTH  * RHOO * CPP    ! Sensible heat flux          [W/m/m]
    LH    = FLXHUM * RHOO * ELL    ! Latent heat flux            [W/m/m]
+   IF (SH .NE. SH .OR. ABS(SH) > 1500.0 .OR. &
+      TS .NE. TS .OR. TS < 250.0 .OR. TS > 340.0) THEN
+
+      WRITE(*,*) 'BAD_HFX_COMPONENT:'
+      WRITE(*,*) ' UTYPE=', UTYPE, ' TREE_ACTIVE=', TREE_ACTIVE
+      WRITE(*,*) ' SH=', SH, ' LH=', LH, ' FLXTH=', FLXTH, ' FLXHUM=', FLXHUM
+      WRITE(*,*) ' FLXTHR=', FLXTHR, ' FLXTHB=', FLXTHB, ' FLXTHG=', FLXTHG
+      WRITE(*,*) ' FLXTHVG=', FLXTHVG, ' FLXTHT=', FLXTHT
+      WRITE(*,*) ' HR=', HR, ' HB=', HB, ' HG=', HG, ' HVG=', HVG, ' HT=', HT
+      WRITE(*,*) ' TR=', TR, ' TB=', TB, ' TG=', TG, ' TVG=', TVG, ' TT=', TT, ' TC=', TC
+      WRITE(*,*) ' TA=', TA, ' QA=', QA, ' UA=', UA, ' UC=', UC, ' UST=', UST
+      WRITE(*,*) ' SSG=', SSG, ' LLG=', LLG, ' RAIN=', RAIN
+      WRITE(*,*) ' SLEAF=', SLEAF, ' RLEAF=', RLEAF, ' ELET=', ELET
+      WRITE(*,*) ' RTREE=', RTREE, ' HTREE=', HTREE, ' LAI_TREE=', LAI_TREE, ' FVG=', FVG
+      CALL FATAL_ERROR('BAD_HFX_COMPONENT')
+   ND IF
+
+
    LH_KINEMATIC = FLXHUM * RHOO   ! Latent heat, Kinematic      [kg/m/m/s]
    LW    = LLG - (LNET*697.7*60.) ! Upward longwave radiation   [W/m/m]
    SW    = SSG - (SNET*697.7*60.) ! Upward shortwave radiation  [W/m/m]
