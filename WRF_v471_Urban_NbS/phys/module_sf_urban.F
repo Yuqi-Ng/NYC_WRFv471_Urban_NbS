@@ -2463,6 +2463,7 @@ ENDIF
 
    FLXUV = MAX(FLXUV, 1.0E-8)     ! added by yuqi 
    UST = SQRT(FLXUV)              ! u* [m/s]
+   UST = MAX(UST, 0.01)
    TST = -FLXTH/UST               ! T* [K]
    QST = -FLXHUM/UST              ! q* [-]
 
@@ -2505,7 +2506,7 @@ ENDIF
 
    GZ1OZ0 = ALOG(Z/Z0)
    CD = 0.4**2./(ALOG(Z/Z0)-PSIM)**2.
-   CHS_LOCAL = 0.4 * UST / (ALOG(Z / Z0H) - PSIH)												 
+   CHS_LOCAL = 0.4 * UST /  MAX(ALOG(Z / Z0H) - PSIH, 1.0E-6)												 
 !
 !m   CH = 0.4**2./(ALOG(Z/Z0)-PSIM)/(ALOG(Z/Z0H)-PSIH)
 !   CHS = 0.4*UST/(ALOG(Z/Z0H)-PSIH) ! cenlin 03/09/2023: uncomment to allow CHS calc for offline hrldas-urban
@@ -2519,12 +2520,12 @@ ENDIF
    !  TS = TA + FLXTH / (ALPHAC / (RHO * CP))  ! surface potential temp (flux temp)
    !  QS = QA + FLXHUM / (ALPHAC / (RHO * CP)) ! surface humidity
    !ELSE																				  
-   TS = TA + FLXTH/CHS    ! surface potential temp (flux temp)
-   QS = QA + FLXHUM/CHS   ! surface humidity
+   !TS = TA + FLXTH/CHS    ! surface potential temp (flux temp)
+   !QS = QA + FLXHUM/CHS   ! surface humidity
 
    CHS_LOCAL = MAX(CHS_LOCAL, 1.0E-3)
 
-   TS = TA + FLXTH / CHS_LOCAL  below added by yuqi 06/23/2026
+   TS = TA + FLXTH / CHS_LOCAL  !below added by yuqi 06/23/2026
    QS = QA + FLXHUM / CHS_LOCAL
 
   ! END IF
