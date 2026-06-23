@@ -1014,6 +1014,18 @@ ENDIF
       CALL VF_TREE_ANALYTICAL(RW, HGT, HTREE, RTREE, TAU, VFGS_TREE, VFGW_TREE, VFGT_TREE, VFWS_TREE, VFWG_TREE, VFWW_TREE, VFWT_TREE, VFTS_TREE, VFTG_TREE, VFTW_TREE)
    END IF
    
+   ! Initialize tree shortwave terms for all conditions
+   ST    = 0.0
+   ST1   = 0.0
+   ST2   = 0.0
+   SLEAF = 0.0
+   SDT   = 0.0
+   SDG   = 0.0
+   SDB   = 0.0
+   SVG   = 0.0
+   SVG1  = 0.0
+   SVG2  = 0.0
+
    IF (SSG > 0.0) THEN
 
      IF(SHADOW) THEN              ! shadow effects, calculate SLX
@@ -1132,6 +1144,7 @@ ENDIF
      SLEAF = (ST / (2. * RTREE * LAI_TREE)) *697.7*60.   ! unit: [w/m/m]
      ELSE 
      ST = 0
+     SLEAF = 0
      END IF
 
 
