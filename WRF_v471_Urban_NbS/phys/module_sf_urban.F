@@ -2452,24 +2452,6 @@ ENDIF
 
    SH    = FLXTH  * RHOO * CPP    ! Sensible heat flux          [W/m/m]
    LH    = FLXHUM * RHOO * ELL    ! Latent heat flux            [W/m/m]
-   IF (SH .NE. SH .OR. ABS(SH) > 1500.0 .OR. &
-      TS .NE. TS .OR. TS < 250.0 .OR. TS > 340.0) THEN
-
-      WRITE(*,*) 'BAD_HFX_COMPONENT:'
-      WRITE(*,*) ' UTYPE=', UTYPE, ' TREE_ACTIVE=', TREE_ACTIVE
-      WRITE(*,*) ' SH=', SH, ' LH=', LH, ' FLXTH=', FLXTH, ' FLXHUM=', FLXHUM
-      WRITE(*,*) ' FLXTHR=', FLXTHR, ' FLXTHB=', FLXTHB, ' FLXTHG=', FLXTHG
-      WRITE(*,*) ' FLXTHVG=', FLXTHVG, ' FLXTHT=', FLXTHT
-      WRITE(*,*) ' HR=', HR, ' HB=', HB, ' HG=', HG, ' HVG=', HVG, ' HT=', HT
-      WRITE(*,*) ' TR=', TR, ' TB=', TB, ' TG=', TG, ' TVG=', TVG, ' TT=', TT, ' TC=', TC
-      WRITE(*,*) ' TA=', TA, ' QA=', QA, ' UA=', UA, ' UC=', UC, ' UST=', UST
-      WRITE(*,*) ' SSG=', SSG, ' LLG=', LLG, ' RAIN=', RAIN
-      WRITE(*,*) ' SLEAF=', SLEAF, ' RLEAF=', RLEAF, ' ELET=', ELET
-      WRITE(*,*) ' RTREE=', RTREE, ' HTREE=', HTREE, ' LAI_TREE=', LAI_TREE, ' FVG=', FVG
-      CALL FATAL_ERROR('BAD_HFX_COMPONENT')
-   END IF
-
-
    LH_KINEMATIC = FLXHUM * RHOO   ! Latent heat, Kinematic      [kg/m/m/s]
    LW    = LLG - (LNET*697.7*60.) ! Upward longwave radiation   [W/m/m]
    SW    = SSG - (SNET*697.7*60.) ! Upward shortwave radiation  [W/m/m]
@@ -2544,6 +2526,31 @@ ENDIF
 
    TS = TA + FLXTH / CHS_LOCAL  !below added by yuqi 06/23/2026
    QS = QA + FLXHUM / CHS_LOCAL
+
+IF (SH .NE. SH .OR. SH < -300.0 .OR. SH > 500.0) THEN
+
+   WRITE(mesg,*) 'CHECK_HFX_RANGE:'
+   WRITE_MESSAGE(TRIM(mesg))
+
+   WRITE(mesg,*) ' UTYPE=', UTYPE, ' TREE_ACTIVE=', TREE_ACTIVE
+   WRITE_MESSAGE(TRIM(mesg))
+
+   WRITE(mesg,*) ' SH=', SH, ' LH=', LH, ' FLXTH=', FLXTH, ' FLXHUM=', FLXHUM
+   WRITE_MESSAGE(TRIM(mesg))
+
+   WRITE(mesg,*) ' FLXTHR=', FLXTHR, ' FLXTHB=', FLXTHB, ' FLXTHG=', FLXTHG, &
+                 ' FLXTHVG=', FLXTHVG, ' FLXTHT=', FLXTHT
+   WRITE_MESSAGE(TRIM(mesg))
+
+   WRITE(mesg,*) ' HR=', HR, ' HB=', HB, ' HG=', HG, ' HVG=', HVG, ' HT=', HT
+   WRITE_MESSAGE(TRIM(mesg))
+
+   WRITE(mesg,*) ' TR=', TR, ' TB=', TB, ' TG=', TG, ' TVG=', TVG, ' TT=', TT, ' TC=', TC, ' TA=', TA
+   WRITE_MESSAGE(TRIM(mesg))
+
+   FATAL_ERROR('CHECK_HFX_RANGE')
+
+END IF
 
   ! END IF
 
