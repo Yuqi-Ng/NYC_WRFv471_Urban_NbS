@@ -1967,8 +1967,7 @@ ENDIF
          IF (TTscheme .eq. 0 ) THEN       ! Option1: residual approach / diagnostic approach
             HT = (SLEAF + RLEAF - ELET - (TT - TTP)/DELT*640) * (1/697.7/60.)      ! following e.q 28 in (Ryu, 2016), unit same as HB, HG in [cal/cm2/s]
          ELSEIF (TTscheme .eq. 1 ) THEN   ! Option2:  resistance approach / prognostic approach
-            ALPHAT = (RHO * CP * 100) / (1.274 * RA_LEAF)        ! unit [cal/cm2/s/K] ([g/cm3] * [cal/g/K] / [s/m] * [m/cm]) 
-            HT = ALPHAT * (TTP - TCP)	       
+            ALPHAT = (RHO * CP * 100) / (1.274 * RA_LEAF)        ! unit [cal/cm2/s/K] ([g/cm3] * [cal/g/K] / [s/m] * [m/cm])      
          ENDIF	
 
 
@@ -2097,13 +2096,22 @@ ENDIF
             !DTC = 0.0
          !ELSE
 
-         
-         TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1 - FVG) * ALPHAG + W * ALPHAB
-         TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2 * RTREE * LAI_TREE * (HT/100)
+         IF (TTscheme .eq. 0 ) THEN   ! Option1: residual approach / diagnostic approach
+            TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1 - FVG) * ALPHAG + W * ALPHAB
+            TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2 * RTREE * LAI_TREE * (HT/100)
+         ELSEIF (TTscheme .eq. 1 ) THEN  ! Option2:  resistance approach / prognostic approach
+            TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1.0 - FVG) * ALPHAG + W * ALPHAB + 2.0 * RTREE * LAI_TREE * ALPHAT
+            TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1.0 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2.0 * RTREE * LAI_TREE * ALPHAT * TTP
+         ENDIF 
+
          TC = TC2 / TC1
          TC = MAX(273.15, MIN(323.15, TC))
          TCP = TC                          ! update TCP  (yuqi)
-		 
+		            
+         IF (TTscheme .eq. 1 ) THEN
+            HT = ALPHAT * (TTP - TC)	 
+         ENDIF
+
 		   ! Chenghao: HT unit is cgs, keep it as is [RHO - g/cm3, CP - cal/g/K]
   
          QC1 = W * ALPHAB * BETB + RW * (1 - FVG) * ALPHAG * BETG + RW * ALPHAC
@@ -2545,7 +2553,8 @@ IF (SH .NE. SH .OR. SH < -300.0 .OR. SH > 500.0) THEN
    WRITE(mesg,*) ' HR=', HR, ' HB=', HB, ' HG=', HG, ' HVG=', HVG, ' HT=', HT
    WRITE_MESSAGE(TRIM(mesg))
 
-   WRITE(mesg,*) ' TR=', TR, ' TB=', TB, ' TG=', TG, ' TVG=', TVG, ' TT=', TT, ' TC=', TC, ' TA=', TA
+   WRITE(mesg,*) ' TR=', TR, ' TB=', TB, ' TG=', TG, ' TVG=', TVG, &
+              ' TT=', TT, ' TC=', TC, ' TA=', TA, ' TTP=', TTP, ' TCP=', TCP
    WRITE_MESSAGE(TRIM(mesg))
 
    FATAL_ERROR('CHECK_HFX_RANGE')
