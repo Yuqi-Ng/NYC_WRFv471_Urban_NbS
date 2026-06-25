@@ -2527,13 +2527,9 @@ ENDIF
    !  TS = TA + FLXTH / (ALPHAC / (RHO * CP))  ! surface potential temp (flux temp)
    !  QS = QA + FLXHUM / (ALPHAC / (RHO * CP)) ! surface humidity
    !ELSE																				  
-   !TS = TA + FLXTH/CHS    ! surface potential temp (flux temp)
-   !QS = QA + FLXHUM/CHS   ! surface humidity
+   TS = TA + FLXTH/CHS    ! surface potential temp (flux temp)
+   QS = QA + FLXHUM/CHS   ! surface humidity
 
-   CHS_LOCAL = MAX(CHS_LOCAL, 1.0E-3)
-
-   TS = TA + FLXTH / CHS_LOCAL  !below added by yuqi 06/23/2026
-   QS = QA + FLXHUM / CHS_LOCAL
 
 IF (SH .NE. SH .OR. SH < -300.0 .OR. SH > 500.0) THEN
 
