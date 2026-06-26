@@ -1757,7 +1757,7 @@ ENDIF
       END DO
 
       IF (TTscheme .eq. 0 ) THEN   ! Option1: residual approach / diagnostic approach
-         TTP = TCP 
+         TTP = TT 
       ELSEIF (TTscheme .eq. 1 ) THEN  ! Option2:  resistance approach / prognostic approach
          TTP = TT        
       ENDIF		
@@ -1958,7 +1958,7 @@ ENDIF
          ELSE
             POTENTIAL_ELET = 0.0
          END IF
-         ELET = MIN(POTENTIAL_ELET, ELET)    ! unit: W/m2
+         ELET = MAX(0.0, MIN(POTENTIAL_ELET, ELET))    ! unit: W/m2
 
          CALL ROOT_UPTAKE(SROOT, NVG, SMG, SMCMAX, SMCDRY, RTREE_M, LAI_TREE, DZVG, ZSOILG, ELET, FVG, RW_M)   ! SROOT unit: m/s (yuqi)
          SROOTP = SROOT ! update root water uptake (yuqi)
@@ -2106,7 +2106,7 @@ ENDIF
 
          TC = TC2 / TC1
          TC = MAX(273.15, MIN(323.15, TC))
-         TCP = TC                          ! update TCP  (yuqi)
+
 		            
          IF (TTscheme .eq. 1 ) THEN
             HT = ALPHAT * (TTP - TC)	 
@@ -2141,6 +2141,7 @@ ENDIF
          ENDIF	
 
          DTC = TCP - TC
+         TCP = TC                          ! update TCP  (yuqi)
          QCP = QC
 
 
