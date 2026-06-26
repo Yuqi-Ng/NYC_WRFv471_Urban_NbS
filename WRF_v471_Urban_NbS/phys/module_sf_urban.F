@@ -1964,9 +1964,9 @@ ENDIF
          SROOTP = SROOT ! update root water uptake (yuqi)
      
 
-         IF (TTscheme .eq. 0 ) THEN       ! Option1: residual approach / diagnostic approach
+         IF (TTscheme .eq. 1 ) THEN       ! Option2:  resistance approach / prognostic approach
             HT = (SLEAF + RLEAF - ELET - (TT - TTP)/DELT*640) * (1/697.7/60.)      ! following e.q 28 in (Ryu, 2016), unit same as HB, HG in [cal/cm2/s]
-         ELSEIF (TTscheme .eq. 1 ) THEN   ! Option2:  resistance approach / prognostic approach
+         ELSEIF (TTscheme .eq. 0 ) THEN   ! Option1: residual approach / diagnostic approach
             ALPHAT = (RHO * CP * 100) / (1.274 * RA_LEAF)        ! unit [cal/cm2/s/K] ([g/cm3] * [cal/g/K] / [s/m] * [m/cm])      
          ENDIF	
 
@@ -2108,7 +2108,7 @@ ENDIF
          TC = MAX(273.15, MIN(323.15, TC))
 
 		            
-         IF (TTscheme .eq. 1 ) THEN
+         IF (TTscheme .eq. 0 ) THEN
             HT = ALPHAT * (TTP - TC)	 
          ENDIF
 
