@@ -1757,7 +1757,7 @@ ENDIF
       END DO
 
       IF (TTscheme .eq. 0 ) THEN   ! Option1: residual approach / diagnostic approach
-         TTP = TT 
+         TTP = TC 
       ELSEIF (TTscheme .eq. 1 ) THEN  ! Option2:  resistance approach / prognostic approach
          TTP = TT        
       ENDIF		
