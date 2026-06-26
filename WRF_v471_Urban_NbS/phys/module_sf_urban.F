@@ -2109,7 +2109,8 @@ ENDIF
 
 		            
          IF (TTscheme .eq. 0 ) THEN
-            HT = ALPHAT * (TTP - TC)	 
+            !HT = ALPHAT * (TTP - TC)	 
+            HT = 0 
          ENDIF
 
 		   ! Chenghao: HT unit is cgs, keep it as is [RHO - g/cm3, CP - cal/g/K]
