@@ -2098,7 +2098,7 @@ ENDIF
 
          IF (TTscheme .eq. 0 ) THEN   ! Option1: residual approach / diagnostic approach
             TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1.0 - FVG) * ALPHAG + W * ALPHAB 
-            TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2.0 * RTREE * LAI_TREE * (HT/100)
+            TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP ! + 2.0 * RTREE * LAI_TREE * (HT/100)
          ELSEIF (TTscheme .eq. 1 ) THEN  ! Option2:  resistance approach / prognostic approach
             TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1.0 - FVG) * ALPHAG + W * ALPHAB + 2.0 * RTREE * LAI_TREE * ALPHAT
             TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1.0 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2.0 * RTREE * LAI_TREE * ALPHAT * TTP
