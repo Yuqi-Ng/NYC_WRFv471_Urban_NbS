@@ -2010,7 +2010,7 @@ ENDIF
          G0G=AKSG*(TGP-TGL(1))/(DZG(1)/2)
 
          CALL TDFCND (KVG,SMG(KZ), QUARTZ, SMCMAX )
-         KVG = KVG * EXP(-2.0 * VFAC)                      ! comment this to allow heat to be transferred efficiently to deeper soil (yuqi)
+         !KVG = KVG * EXP(-2.0 * VFAC)                      ! comment this to allow heat to be transferred efficiently to deeper soil (yuqi)
          G0VG= KVG * (TVGP-TVGL(1))/(DZVG(1)/2.)/697.7/60   ! unit: cal/cm2/s (yuqi)
 
 
@@ -2098,7 +2098,7 @@ ENDIF
 
          IF (TTscheme .eq. 0 ) THEN   ! Option1: residual approach / diagnostic approach
             TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1.0 - FVG) * ALPHAG + W * ALPHAB 
-            TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP ! + 2.0 * RTREE * LAI_TREE * (HT/100)
+            TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP! + 2.0 * RTREE * LAI_TREE * (HT/100)
          ELSEIF (TTscheme .eq. 1 ) THEN  ! Option2:  resistance approach / prognostic approach
             TC1 = RW * ALPHAC + RW * FVG * ALPHAVG + RW * (1.0 - FVG) * ALPHAG + W * ALPHAB + 2.0 * RTREE * LAI_TREE * ALPHAT
             TC2 = RW * ALPHAC * TA + RW * FVG * ALPHAVG * TVGP + RW * (1.0 - FVG) * ALPHAG * TGP + W * ALPHAB * TBP + 2.0 * RTREE * LAI_TREE * ALPHAT * TTP
