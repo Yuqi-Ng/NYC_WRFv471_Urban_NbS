@@ -2646,6 +2646,11 @@ END IF
    ELSE
    TH2 = TS + (TA-TS) *(CHS/CHS2) 
    Q2 = QS + (QA-QS)*(PSIT2/PSIT)    ! humidity at 2 m       [-]
+
+   ! add by yuqi to keep consistant with hrldas
+   TH2 = 0.5*TC+0.5*TH2
+   Q2 = 0.5*QC+0.5*Q2
+
    END IF
 
 !   TS = (LW/SIG_SI/0.88)**0.25       ! Radiative temperature [K]
