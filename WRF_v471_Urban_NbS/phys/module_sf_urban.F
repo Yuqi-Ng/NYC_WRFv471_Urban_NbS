@@ -124,6 +124,16 @@ use module_model_constants, only :  piconst
 
    CHARACTER (LEN=256) , PRIVATE   :: mesg
 
+!-------------------------------------------------------------------------------
+! Urban-NbS debug counters for sensible-heat component diagnostics.
+! The counters are SAVE variables at module scope, so each MPI rank prints a
+! limited number of nighttime and daytime samples to avoid excessive rsl output.
+!-------------------------------------------------------------------------------
+   INTEGER, SAVE, PRIVATE          :: nbs_hdiag_count_night = 0
+   INTEGER, SAVE, PRIVATE          :: nbs_hdiag_count_day   = 0
+   INTEGER, PARAMETER, PRIVATE     :: nbs_hdiag_max_night   = 100
+   INTEGER, PARAMETER, PRIVATE     :: nbs_hdiag_max_day     = 100
+
    CONTAINS
 
 !===============================================================================
@@ -639,6 +649,9 @@ use module_model_constants, only :  piconst
    REAL :: HOUI1, HOUI2, HOUI3, HOUI4, HOUI5, HOUI6, HOUI7, HOUI8
    REAL :: SLX, SLX1, SLX2, SLX3, SLX4, SLX5, SLX6, SLX7, SLX8
    REAL :: FLXTHR, FLXTHB, FLXTHG
+   REAL :: H_DIAG_ROOF, H_DIAG_WALL, H_DIAG_ROAD, H_DIAG_VG
+   REAL :: H_DIAG_TREE, H_DIAG_GR, H_DIAG_AH, H_DIAG_SUM
+   REAL :: H_DIAG_CHS_RATIO, H_DIAG_PSIT_RATIO
    REAL :: SR, SB, SG, RR, RB, RG
    REAL :: SR1, SR2, SB1, SB2, SG1, SG2, RR1, RR2, RB1, RB2, RG1, RG2
    REAL :: HR, HB, HG, ELER, ELEB, ELEG, G0R, G0B, G0G
@@ -2457,6 +2470,55 @@ ENDIF
  ENDIF
 
 !----------------------------------------------------------------------------
+! Diagnostic sensible-heat component decomposition [W m-2].
+! This does not change the model state. It mirrors the FLXTH weighting above.
+! Yuqi debug note:
+!   H_roof = roof contribution
+!   H_wall = wall contribution
+!   H_road = impervious canyon-ground contribution
+!   H_vg   = vegetated-ground contribution
+!   H_tree = direct tree sensible heat contribution
+!   H_gr   = green-roof contribution
+!   H_ah   = anthropogenic sensible heat contribution
+!----------------------------------------------------------------------------
+
+   H_DIAG_ROOF = 0.0
+   H_DIAG_WALL = 0.0
+   H_DIAG_ROAD = 0.0
+   H_DIAG_VG   = 0.0
+   H_DIAG_TREE = 0.0
+   H_DIAG_GR   = 0.0
+   H_DIAG_AH   = 0.0
+
+   IF (groption == 1 .AND. .NOT. TREE_ACTIVE) THEN
+      H_DIAG_ROOF = (1.0 - FGR) * R * FLXTHR * RHOO * CPP
+      H_DIAG_GR   = FGR * R * FLXTHGR * RHOO * CPP
+      H_DIAG_WALL = W * FLXTHB * RHOO * CPP
+      H_DIAG_ROAD = RW * FLXTHG * RHOO * CPP
+   ELSEIF (groption /= 1 .AND. TREE_ACTIVE) THEN
+      H_DIAG_ROOF = R * FLXTHR * RHOO * CPP
+      H_DIAG_WALL = W * FLXTHB * RHOO * CPP
+      H_DIAG_ROAD = (1.0 - FVG) * RW * FLXTHG * RHOO * CPP
+      H_DIAG_VG   = FVG * RW * FLXTHVG * RHOO * CPP
+      H_DIAG_TREE = FLXTHT * LAI_TREE * 2.0 * RTREE * RHOO * CPP
+   ELSEIF (groption == 1 .AND. TREE_ACTIVE) THEN
+      H_DIAG_ROOF = (1.0 - FGR) * R * FLXTHR * RHOO * CPP
+      H_DIAG_GR   = FGR * R * FLXTHGR * RHOO * CPP
+      H_DIAG_WALL = W * FLXTHB * RHOO * CPP
+      H_DIAG_ROAD = (1.0 - FVG) * RW * FLXTHG * RHOO * CPP
+      H_DIAG_VG   = FVG * RW * FLXTHVG * RHOO * CPP
+      H_DIAG_TREE = FLXTHT * LAI_TREE * 2.0 * RTREE * RHOO * CPP
+   ELSE
+      H_DIAG_ROOF = R * FLXTHR * RHOO * CPP
+      H_DIAG_WALL = W * FLXTHB * RHOO * CPP
+      H_DIAG_ROAD = RW * FLXTHG * RHOO * CPP
+   ENDIF
+
+   IF (ahoption == 1) H_DIAG_AH = AH
+   H_DIAG_SUM = H_DIAG_ROOF + H_DIAG_GR + H_DIAG_WALL + H_DIAG_ROAD + &
+                H_DIAG_VG + H_DIAG_TREE + H_DIAG_AH
+
+!----------------------------------------------------------------------------
 ! Convert Unit: FLUXES and u* T* q*  --> WRF
 !----------------------------------------------------------------------------
 
@@ -2652,6 +2714,98 @@ END IF
    Q2 = 0.5*QC+0.5*Q2
 
    END IF
+
+!----------------------------------------------------------------------------
+! Urban-NbS debug print: sensible heat components and temperature diagnostics.
+! This block is diagnostic only and does not modify the model state.
+! Night samples use COSZ <= 0.0. Day samples use COSZ > 0.30.
+! Printed values are instantaneous local urban-column values, not time/domain means.
+!----------------------------------------------------------------------------
+
+   H_DIAG_CHS_RATIO  = -999.0
+   H_DIAG_PSIT_RATIO = -999.0
+
+   IF (ABS(CHS2) > 1.0E-12) THEN
+      H_DIAG_CHS_RATIO = CHS / CHS2
+   ENDIF
+
+   IF (ABS(PSIT) > 1.0E-12) THEN
+      H_DIAG_PSIT_RATIO = PSIT2 / PSIT
+   ENDIF
+
+   IF (TREE_ACTIVE .AND. COSZ <= 0.0 .AND.                         &
+       nbs_hdiag_count_night < nbs_hdiag_max_night .AND.            &
+       (ABS(H_DIAG_SUM) > 5.0 .OR. ABS(H_DIAG_VG) > 1.0 .OR.        &
+        ABS(H_DIAG_TREE) > 0.1)) THEN
+
+      nbs_hdiag_count_night = nbs_hdiag_count_night + 1
+
+      WRITE(mesg,'(A,I6,A,I3,A,L1,A,4F10.4)')                      &
+           'NBS_DBG_N count=', nbs_hdiag_count_night,               &
+           ' UTYPE=', UTYPE, ' TREE=', TREE_ACTIVE,                 &
+           ' FVG/R/RW/W=', FVG, R, RW, W
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,8F11.3)')                                      &
+           'NBS_HCOMP_N_Wm2 roof gr wall road vg tree ah sum=',      &
+           H_DIAG_ROOF, H_DIAG_GR, H_DIAG_WALL, H_DIAG_ROAD,        &
+           H_DIAG_VG, H_DIAG_TREE, H_DIAG_AH, H_DIAG_SUM
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,6F11.3)')                                      &
+           'NBS_HRAW_N FLXTHR FLXTHGR FLXTHB FLXTHG FLXTHVG FLXTHT=', &
+           FLXTHR, FLXTHGR, FLXTHB, FLXTHG, FLXTHVG, FLXTHT
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,10F10.3)')                                     &
+           'NBS_TEMP_N TA TC TS TH2 TR TB TG TVG TT TTP=',           &
+           TA, TC, TS, TH2, TR, TB, TG, TVG, TT, TTP
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,10F10.4)')                                     &
+           'NBS_ENV_N SH LH SSG LLG COSZ ZA CHS CHS2 CHR PSI=',      &
+           SH, LH, SSG, LLG, COSZ, ZA, CHS, CHS2,                   &
+           H_DIAG_CHS_RATIO, H_DIAG_PSIT_RATIO
+      WRITE_MESSAGE(TRIM(mesg))
+
+   ENDIF
+
+   IF (TREE_ACTIVE .AND. COSZ > 0.30 .AND.                          &
+       nbs_hdiag_count_day < nbs_hdiag_max_day .AND.                &
+       (ABS(H_DIAG_SUM) > 5.0 .OR. ABS(H_DIAG_VG) > 1.0 .OR.        &
+        ABS(H_DIAG_TREE) > 0.1)) THEN
+
+      nbs_hdiag_count_day = nbs_hdiag_count_day + 1
+
+      WRITE(mesg,'(A,I6,A,I3,A,L1,A,4F10.4)')                      &
+           'NBS_DBG_D count=', nbs_hdiag_count_day,                 &
+           ' UTYPE=', UTYPE, ' TREE=', TREE_ACTIVE,                 &
+           ' FVG/R/RW/W=', FVG, R, RW, W
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,8F11.3)')                                      &
+           'NBS_HCOMP_D_Wm2 roof gr wall road vg tree ah sum=',      &
+           H_DIAG_ROOF, H_DIAG_GR, H_DIAG_WALL, H_DIAG_ROAD,        &
+           H_DIAG_VG, H_DIAG_TREE, H_DIAG_AH, H_DIAG_SUM
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,6F11.3)')                                      &
+           'NBS_HRAW_D FLXTHR FLXTHGR FLXTHB FLXTHG FLXTHVG FLXTHT=', &
+           FLXTHR, FLXTHGR, FLXTHB, FLXTHG, FLXTHVG, FLXTHT
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,10F10.3)')                                     &
+           'NBS_TEMP_D TA TC TS TH2 TR TB TG TVG TT TTP=',           &
+           TA, TC, TS, TH2, TR, TB, TG, TVG, TT, TTP
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,10F10.4)')                                     &
+           'NBS_ENV_D SH LH SSG LLG COSZ ZA CHS CHS2 CHR PSI=',      &
+           SH, LH, SSG, LLG, COSZ, ZA, CHS, CHS2,                   &
+           H_DIAG_CHS_RATIO, H_DIAG_PSIT_RATIO
+      WRITE_MESSAGE(TRIM(mesg))
+
+   ENDIF
 
 !   TS = (LW/SIG_SI/0.88)**0.25       ! Radiative temperature [K]
 
