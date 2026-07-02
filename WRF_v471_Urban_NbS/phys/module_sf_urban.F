@@ -122,7 +122,7 @@ use module_model_constants, only :  piconst
    REAL, ALLOCATABLE, DIMENSION(:) :: ALBT_TBL        ! Emissivity of tree canopy																						   
 !===end urban nature-based solutions processes===
 
-   CHARACTER (LEN=2048) , PRIVATE  :: mesg
+   CHARACTER (LEN=256) , PRIVATE   :: mesg
 
 !-------------------------------------------------------------------------------
 ! Urban-NbS debug counters for sensible-heat component diagnostics.
@@ -652,11 +652,6 @@ use module_model_constants, only :  piconst
    REAL :: H_DIAG_ROOF, H_DIAG_WALL, H_DIAG_ROAD, H_DIAG_VG
    REAL :: H_DIAG_TREE, H_DIAG_GR, H_DIAG_AH, H_DIAG_SUM
    REAL :: H_DIAG_CHS_RATIO, H_DIAG_PSIT_RATIO
-   REAL :: SWD_SDB_DEF, SWD_SDG_DEF
-   REAL :: SWD_SB2_WALL, SWD_SB2_TREE, SWD_SB2_GROUND
-   REAL :: SWD_SG2_WALL, SWD_SG2_TREE
-   REAL :: SWD_SVG2_WALL, SWD_SVG2_TREE
-   REAL :: SWD_ST2_WALL, SWD_ST2_GROUND
    REAL :: SR, SB, SG, RR, RB, RG
    REAL :: SR1, SR2, SB1, SB2, SG1, SG2, RR1, RR2, RB1, RB2, RG1, RG2
    REAL :: HR, HB, HG, ELER, ELEB, ELEG, G0R, G0B, G0G
@@ -1023,18 +1018,6 @@ ENDIF
 ! Net Short Wave Radiation at roof, wall, and road
 !-------------------------------------------------------------------------------
 
-   SWD_SDB_DEF = 0.0
-   SWD_SDG_DEF = 0.0
-   SWD_SB2_WALL = 0.0
-   SWD_SB2_TREE = 0.0
-   SWD_SB2_GROUND = 0.0
-   SWD_SG2_WALL = 0.0
-   SWD_SG2_TREE = 0.0
-   SWD_SVG2_WALL = 0.0
-   SWD_SVG2_TREE = 0.0
-   SWD_ST2_WALL = 0.0
-   SWD_ST2_GROUND = 0.0
-
    SHADOW = .true.
 !   SHADOW = .false.
 ! SHADOW has not been activated in previous versions of SLUCM (chenghao) - it's not turned on
@@ -1044,7 +1027,19 @@ ENDIF
       CALL VF_TREE_ANALYTICAL(RW, HGT, HTREE, RTREE, TAU, VFGS_TREE, VFGW_TREE, VFGT_TREE, VFWS_TREE, VFWG_TREE, VFWW_TREE, VFWT_TREE, VFTS_TREE, VFTG_TREE, VFTW_TREE)
    END IF
    
-    IF (SSG > 0.0) THEN
+   ! Initialize tree shortwave terms for all conditions
+   ST    = 0.0
+   ST1   = 0.0
+   ST2   = 0.0
+   SLEAF = 0.0
+   SDT   = 0.0
+   SDG   = 0.0
+   SDB   = 0.0
+   SVG   = 0.0
+   SVG1  = 0.0
+   SVG2  = 0.0
+
+   IF (SSG > 0.0) THEN
 
      IF(SHADOW) THEN              ! shadow effects, calculate SLX
        FAI=XLAT*PI/180.
@@ -1138,8 +1133,8 @@ ENDIF
        SGR1= SD * (1. - ALBV) + SQ * (1. - ALBV)
        SB1 = (SDB + SQ * VFWS_TREE) * (1. - ALBB)
        SB2 = (SDB + SQ * VFWS_TREE) * ALBB * VFWW_TREE * (1 - ALBB) + &
-             (SDT + SQ * VFTS_TREE) * ALBT * VFWT_TREE * (1 - ALBB) + &
-             (SDG + SQ * VFGS_TREE) * ALBGE* VFWG_TREE * (1 - ALBB)
+             (SDT + SQ * VFTS_TREE) * ALBT * VFWT_TREE * (1 - ALBB) !+ &
+             !(SDG + SQ * VFGS_TREE) * ALBGE* VFWG_TREE * (1 - ALBB)
        SG1 = (SDG + SQ * VFGS_TREE) * (1 - ALBG) 
        SG2 = 2. * (SDB + SQ * VFWS_TREE) * ALBB * VFGW_TREE * (1 - ALBG) + &
              (SDT + SQ * VFTS_TREE) * ALBT * VFGT_TREE * (1 - ALBG)
@@ -1149,18 +1144,6 @@ ENDIF
        ST1 = (SDT + SQ * VFTS_TREE) * (1- ALBT)
        ST2 = 2. * (SDB + SQ * VFWS_TREE) * ALBB * VFTW_TREE *(1 - ALBT) + &
              (SDG + SQ * VFGS_TREE) * ALBG * VFTG_TREE * (1 - ALBT)    
-
-       SWD_SDB_DEF = SD * SLX / W
-       SWD_SDG_DEF = SD * (RW - SLX) / RW
-       SWD_SB2_WALL = (SDB + SQ * VFWS_TREE) * ALBB * VFWW_TREE * (1 - ALBB)
-       SWD_SB2_TREE = (SDT + SQ * VFTS_TREE) * ALBT * VFWT_TREE * (1 - ALBB)
-       SWD_SB2_GROUND = (SDG + SQ * VFGS_TREE) * ALBGE * VFWG_TREE * (1 - ALBB)
-       SWD_SG2_WALL = 2. * (SDB + SQ * VFWS_TREE) * ALBB * VFGW_TREE * (1 - ALBG)
-       SWD_SG2_TREE = (SDT + SQ * VFTS_TREE) * ALBT * VFGT_TREE * (1 - ALBG)
-       SWD_SVG2_WALL = 2. * (SDB + SQ * VFWS_TREE) * ALBB * VFGW_TREE * (1 - ALBVG)
-       SWD_SVG2_TREE = (SDT + SQ * VFTS_TREE) * ALBT * VFGT_TREE * (1 - ALBVG)
-       SWD_ST2_WALL = 2. * (SDB + SQ * VFWS_TREE) * ALBB * VFTW_TREE * (1 - ALBT)
-       SWD_ST2_GROUND = (SDG + SQ * VFGS_TREE) * ALBG * VFTG_TREE * (1 - ALBT)
      END IF
 
      SR=SR1    ! units: [cal/cm2/s]
@@ -2833,43 +2816,6 @@ END IF
            FVG*RW*G0VG*697.7*60.0
       WRITE_MESSAGE(TRIM(mesg))
 
-
-      WRITE(mesg,'(A,8F11.3)')                                      &
-           'NBS_SW_N_DIRECT_Wm2 SDB SDG SDT SDBdef SDGdef SQw SQt SQg=', &
-           SDB*697.7*60.0, SDG*697.7*60.0, SDT*697.7*60.0,          &
-           SWD_SDB_DEF*697.7*60.0, SWD_SDG_DEF*697.7*60.0,          &
-           SQ*VFWS_TREE*697.7*60.0, SQ*VFTS_TREE*697.7*60.0,        &
-           SQ*VFGS_TREE*697.7*60.0
-      WRITE_MESSAGE(TRIM(mesg))
-
-      WRITE(mesg,'(A,6F11.3)')                                      &
-           'NBS_SW_N_WALL_Wm2 SB1 SB2 SB2wall SB2tree SB2ground SB=', &
-           SB1*697.7*60.0, SB2*697.7*60.0,                          &
-           SWD_SB2_WALL*697.7*60.0, SWD_SB2_TREE*697.7*60.0,         &
-           SWD_SB2_GROUND*697.7*60.0, SB*697.7*60.0
-      WRITE_MESSAGE(TRIM(mesg))
-
-      WRITE(mesg,'(A,10F11.3)')                                     &
-           'NBS_SW_N_SURF_Wm2 SG1 SG2 SG2wall SG2tree SVG1 SVG2 SVG2wall SVG2tree ST1 ST2=', &
-           SG1*697.7*60.0, SG2*697.7*60.0,                          &
-           SWD_SG2_WALL*697.7*60.0, SWD_SG2_TREE*697.7*60.0,         &
-           SVG1*697.7*60.0, SVG2*697.7*60.0,                        &
-           SWD_SVG2_WALL*697.7*60.0, SWD_SVG2_TREE*697.7*60.0,       &
-           ST1*697.7*60.0, ST2*697.7*60.0
-      WRITE_MESSAGE(TRIM(mesg))
-
-      WRITE(mesg,'(A,8F11.4)')                                      &
-           'NBS_SW_N_GEO XI SLX CHI ETA CHIT ETAT TAU DTREE=',       &
-           XI, SLX, CHI_SHADED, ETA_SHADED, CHI_SHADED_TREE,         &
-           ETA_SHADED_TREE, TAU, DTREE
-      WRITE_MESSAGE(TRIM(mesg))
-
-      WRITE(mesg,'(A,10F11.4)')                                     &
-           'NBS_SW_N_VF VFWS VFWW VFWT VFWG VFTS VFGS VFGW VFTW VFGT VFTG=', &
-           VFWS_TREE, VFWW_TREE, VFWT_TREE, VFWG_TREE, VFTS_TREE,    &
-           VFGS_TREE, VFGW_TREE, VFTW_TREE, VFGT_TREE, VFTG_TREE
-      WRITE_MESSAGE(TRIM(mesg))
-
    ENDIF
 
    IF (TREE_ACTIVE .AND. COSZ > 0.30 .AND.                          &
@@ -2953,43 +2899,6 @@ END IF
            FVG*RW*SVG*697.7*60.0, FVG*RW*RVG*697.7*60.0,            &
            H_DIAG_VG, FVG*RW*ELEVG*697.7*60.0,                      &
            FVG*RW*G0VG*697.7*60.0
-      WRITE_MESSAGE(TRIM(mesg))
-
-
-      WRITE(mesg,'(A,8F11.3)')                                      &
-           'NBS_SW_D_DIRECT_Wm2 SDB SDG SDT SDBdef SDGdef SQw SQt SQg=', &
-           SDB*697.7*60.0, SDG*697.7*60.0, SDT*697.7*60.0,          &
-           SWD_SDB_DEF*697.7*60.0, SWD_SDG_DEF*697.7*60.0,          &
-           SQ*VFWS_TREE*697.7*60.0, SQ*VFTS_TREE*697.7*60.0,        &
-           SQ*VFGS_TREE*697.7*60.0
-      WRITE_MESSAGE(TRIM(mesg))
-
-      WRITE(mesg,'(A,6F11.3)')                                      &
-           'NBS_SW_D_WALL_Wm2 SB1 SB2 SB2wall SB2tree SB2ground SB=', &
-           SB1*697.7*60.0, SB2*697.7*60.0,                          &
-           SWD_SB2_WALL*697.7*60.0, SWD_SB2_TREE*697.7*60.0,         &
-           SWD_SB2_GROUND*697.7*60.0, SB*697.7*60.0
-      WRITE_MESSAGE(TRIM(mesg))
-
-      WRITE(mesg,'(A,10F11.3)')                                     &
-           'NBS_SW_D_SURF_Wm2 SG1 SG2 SG2wall SG2tree SVG1 SVG2 SVG2wall SVG2tree ST1 ST2=', &
-           SG1*697.7*60.0, SG2*697.7*60.0,                          &
-           SWD_SG2_WALL*697.7*60.0, SWD_SG2_TREE*697.7*60.0,         &
-           SVG1*697.7*60.0, SVG2*697.7*60.0,                        &
-           SWD_SVG2_WALL*697.7*60.0, SWD_SVG2_TREE*697.7*60.0,       &
-           ST1*697.7*60.0, ST2*697.7*60.0
-      WRITE_MESSAGE(TRIM(mesg))
-
-      WRITE(mesg,'(A,8F11.4)')                                      &
-           'NBS_SW_D_GEO XI SLX CHI ETA CHIT ETAT TAU DTREE=',       &
-           XI, SLX, CHI_SHADED, ETA_SHADED, CHI_SHADED_TREE,         &
-           ETA_SHADED_TREE, TAU, DTREE
-      WRITE_MESSAGE(TRIM(mesg))
-
-      WRITE(mesg,'(A,10F11.4)')                                     &
-           'NBS_SW_D_VF VFWS VFWW VFWT VFWG VFTS VFGS VFGW VFTW VFGT VFTG=', &
-           VFWS_TREE, VFWW_TREE, VFWT_TREE, VFWG_TREE, VFTS_TREE,    &
-           VFGS_TREE, VFGW_TREE, VFTW_TREE, VFGT_TREE, VFTG_TREE
       WRITE_MESSAGE(TRIM(mesg))
 
    ENDIF
