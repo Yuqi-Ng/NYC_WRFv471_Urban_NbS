@@ -2710,8 +2710,8 @@ END IF
    Q2 = QS + (QA-QS)*(PSIT2/PSIT)    ! humidity at 2 m       [-]
 
    ! add by yuqi to keep consistant with hrldas
-   TH2 = 0.5*TC+0.5*TH2
-   Q2 = 0.5*QC+0.5*Q2
+   !TH2 = 0.5*TC+0.5*TH2
+   !Q2 = 0.5*QC+0.5*Q2
 
    END IF
 
@@ -2768,6 +2768,54 @@ END IF
            H_DIAG_CHS_RATIO, H_DIAG_PSIT_RATIO
       WRITE_MESSAGE(TRIM(mesg))
 
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_N_ROOF_Wm2 SR RR HR ELER G0R=',                &
+           SR*697.7*60.0, RR*697.7*60.0, HR*697.7*60.0,             &
+           ELER*697.7*60.0, G0R*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_N_WALL_Wm2 SB RB HB ELEB G0B=',                &
+           SB*697.7*60.0, RB*697.7*60.0, HB*697.7*60.0,             &
+           ELEB*697.7*60.0, G0B*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_N_ROAD_Wm2 SG RG HG ELEG G0G=',                &
+           SG*697.7*60.0, RG*697.7*60.0, HG*697.7*60.0,             &
+           ELEG*697.7*60.0, G0G*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_N_VG_Wm2 SVG RVG HVG ELEVG G0VG=',             &
+           SVG*697.7*60.0, RVG*697.7*60.0, HVG*697.7*60.0,          &
+           ELEVG*697.7*60.0, G0VG*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_N_TREE_Wm2 SLEAF RLEAF ELET HT RT=',           &
+           SLEAF, RLEAF, ELET, HT*697.7*60.0, RT*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,10F11.3)')                                     &
+           'NBS_EBALW_N_RW_Wm2 rSW rLW rH rLE rG wSW wLW wH wLE wG=', &
+           R*SR*697.7*60.0, R*RR*697.7*60.0, H_DIAG_ROOF,           &
+           R*ELER*697.7*60.0, R*G0R*697.7*60.0,                    &
+           W*SB*697.7*60.0, W*RB*697.7*60.0, H_DIAG_WALL,           &
+           W*ELEB*697.7*60.0, W*G0B*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,10F11.3)')                                     &
+           'NBS_EBALW_N_GV_Wm2 gSW gLW gH gLE gG vgSW vgLW vgH vgLE vgG=', &
+           (1.0-FVG)*RW*SG*697.7*60.0,                              &
+           (1.0-FVG)*RW*RG*697.7*60.0, H_DIAG_ROAD,                 &
+           (1.0-FVG)*RW*ELEG*697.7*60.0,                            &
+           (1.0-FVG)*RW*G0G*697.7*60.0,                             &
+           FVG*RW*SVG*697.7*60.0, FVG*RW*RVG*697.7*60.0,            &
+           H_DIAG_VG, FVG*RW*ELEVG*697.7*60.0,                      &
+           FVG*RW*G0VG*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
    ENDIF
 
    IF (TREE_ACTIVE .AND. COSZ > 0.30 .AND.                          &
@@ -2803,6 +2851,54 @@ END IF
            'NBS_ENV_D SH LH SSG LLG COSZ ZA CHS CHS2 CHR PSI=',      &
            SH, LH, SSG, LLG, COSZ, ZA, CHS, CHS2,                   &
            H_DIAG_CHS_RATIO, H_DIAG_PSIT_RATIO
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_D_ROOF_Wm2 SR RR HR ELER G0R=',                &
+           SR*697.7*60.0, RR*697.7*60.0, HR*697.7*60.0,             &
+           ELER*697.7*60.0, G0R*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_D_WALL_Wm2 SB RB HB ELEB G0B=',                &
+           SB*697.7*60.0, RB*697.7*60.0, HB*697.7*60.0,             &
+           ELEB*697.7*60.0, G0B*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_D_ROAD_Wm2 SG RG HG ELEG G0G=',                &
+           SG*697.7*60.0, RG*697.7*60.0, HG*697.7*60.0,             &
+           ELEG*697.7*60.0, G0G*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_D_VG_Wm2 SVG RVG HVG ELEVG G0VG=',             &
+           SVG*697.7*60.0, RVG*697.7*60.0, HVG*697.7*60.0,          &
+           ELEVG*697.7*60.0, G0VG*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,5F11.3)')                                      &
+           'NBS_EBAL_D_TREE_Wm2 SLEAF RLEAF ELET HT RT=',           &
+           SLEAF, RLEAF, ELET, HT*697.7*60.0, RT*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,10F11.3)')                                     &
+           'NBS_EBALW_D_RW_Wm2 rSW rLW rH rLE rG wSW wLW wH wLE wG=', &
+           R*SR*697.7*60.0, R*RR*697.7*60.0, H_DIAG_ROOF,           &
+           R*ELER*697.7*60.0, R*G0R*697.7*60.0,                    &
+           W*SB*697.7*60.0, W*RB*697.7*60.0, H_DIAG_WALL,           &
+           W*ELEB*697.7*60.0, W*G0B*697.7*60.0
+      WRITE_MESSAGE(TRIM(mesg))
+
+      WRITE(mesg,'(A,10F11.3)')                                     &
+           'NBS_EBALW_D_GV_Wm2 gSW gLW gH gLE gG vgSW vgLW vgH vgLE vgG=', &
+           (1.0-FVG)*RW*SG*697.7*60.0,                              &
+           (1.0-FVG)*RW*RG*697.7*60.0, H_DIAG_ROAD,                 &
+           (1.0-FVG)*RW*ELEG*697.7*60.0,                            &
+           (1.0-FVG)*RW*G0G*697.7*60.0,                             &
+           FVG*RW*SVG*697.7*60.0, FVG*RW*RVG*697.7*60.0,            &
+           H_DIAG_VG, FVG*RW*ELEVG*697.7*60.0,                      &
+           FVG*RW*G0VG*697.7*60.0
       WRITE_MESSAGE(TRIM(mesg))
 
    ENDIF
