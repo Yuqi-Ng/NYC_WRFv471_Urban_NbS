@@ -910,22 +910,6 @@ ENDIF
       Z0C = max(0.1, ZA - ZDC - 2.0 - 0.05)
    endif
 
-   !IF( ZDC+Z0C+2. >= ZA) THEN
-      !write(mesg,*) 'urban fatal: ZA=', ZA, ' ZDC=', ZDC, ' Z0C=', Z0C, ' ZR=', ZR
-      !WRITE_MESSAGE(mesg)
-      !write(mesg,*) 'urban fatal: ZDC+Z0C+2=', ZDC+Z0C+2.0, ' excess=', ZDC+Z0C+2.0-ZA
-      !WRITE_MESSAGE(mesg)
-      !write(mesg,*) 'urban fatal: R=', R, ' lambda_f=', lambda_f, ' HGT=', HGT
-      !WRITE_MESSAGE(mesg)
-      !write(mesg,*) 'urban fatal: mh_urb=', mh_urb, ' lp_urb=', lp_urb, ' lf_urb=', lf_urb
-      !WRITE_MESSAGE(mesg)
-      !write(mesg,*) 'urban fatal: z0_urb=', z0_urb, ' vegfrac_in=', vegfrac_in
-      !WRITE_MESSAGE(mesg)
-      !write(mesg,*) 'urban fatal: distributed_aerodynamics_option=', distributed_aerodynamics_option
-      !WRITE_MESSAGE(mesg)
-      !FATAL_ERROR("ZDC + Z0C + 2m is larger than the 1st WRF level - Stop in subroutine urban - change ZDC and Z0C" )
-   !END IF
-
    IF(.NOT.LSOLAR) THEN
      SSGD = SRATIO*SSG
      SSGQ = SSG - SSGD
@@ -2595,7 +2579,7 @@ ENDIF
    QS = QA + FLXHUM/CHS   ! surface humidity
 
 
-IF (SH .NE. SH .OR. SH < -300.0 .OR. SH > 500.0) THEN
+IF (SH .NE. SH .OR. SH < -300.0 .OR. SH > 1000.0) THEN
 
    WRITE(mesg,*) 'CHECK_HFX_RANGE:'
    WRITE_MESSAGE(TRIM(mesg))
@@ -4243,9 +4227,9 @@ END IF
           SMR_URB3D(I,2,J)=0.2
           SMR_URB3D(I,3,J)=0.2
           SMR_URB3D(I,4,J)=0.
-          SMG_URB3D(I,1,J)=0.2  ! add by huang
-          SMG_URB3D(I,2,J)=0.2
-          SMG_URB3D(I,3,J)=0.2
+          SMG_URB3D(I,1,J)=0.1  ! add by huang
+          SMG_URB3D(I,2,J)=0.1
+          SMG_URB3D(I,3,J)=0.1
           SMG_URB3D(I,4,J)=0.0											  
       ENDIF
 !     END DO
